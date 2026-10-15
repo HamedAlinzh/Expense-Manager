@@ -2,7 +2,7 @@
 
 A self-hosted, single-user expense manager for Iranian bank cards (Sepah, Mellat, Tejarat, Blu). Transactions arrive from forwarded bank SMS and app notifications, and from a Telegram bot.
 
-> Status: **Phase 4 of 8** — foundation, cards, categories & rules, transactions, settings, dashboard and SMS/notification ingestion are done. Next: Telegram bot, import, alerts and hardening. This README is completed in phase 8.
+> Status: **Phase 5 of 8** — foundation, cards, categories & rules, transactions, settings, dashboard, SMS/notification ingestion and the Telegram bot are done. Next: import, alerts and hardening. This README is completed in phase 8.
 
 ## Stack
 
@@ -134,18 +134,60 @@ Real samples live in `fixtures/sms/<bank>/` and run as tests — see
 `src/lib/ingest/parsers/profiles.ts`. Inbox → **Test a message** shows how any text would be read
 without saving it, and **Re-parse all** re-runs unparsed messages after you change cards or parsers.
 
+## Telegram bot
+
+### Create the bot and find your user ID
+
+1. In Telegram, open **@BotFather** → `/newbot` → pick a name and a username ending in `bot`.
+   BotFather replies with the token → `TELEGRAM_BOT_TOKEN`.
+2. Find your numeric user ID: message **@userinfobot** (or @RawDataBot) and copy the `id`
+   → `TELEGRAM_ALLOWED_USER_IDS` (comma-separate several IDs). Everyone else is silently ignored,
+   and the bot never answers in groups.
+3. If a token is ever exposed, send `/revoke` to BotFather, pick the bot, and put the new token in `.env`.
+
+### Polling (local development) vs webhook (production)
+
+| `TELEGRAM_MODE` | How it works                                                                                                                                                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `polling`       | The server long-polls Telegram. Works anywhere Telegram's API is reachable — no public URL needed.                                                                                                                |
+| `webhook`       | On start the server registers `APP_URL/api/telegram/webhook` with Telegram, protected by `TELEGRAM_WEBHOOK_SECRET` (`openssl rand -hex 32`; letters, digits, `_` and `-` only). Requires the public HTTPS domain. |
+| `off`           | Bot disabled.                                                                                                                                                                                                     |
+
+Switching from webhook to polling removes the webhook automatically. Only one server may poll a
+bot at a time — stop local polling before deploying in webhook mode with the same token.
+
+### Using it
+
+| You send                       | Result                                                                |
+| ------------------------------ | --------------------------------------------------------------------- |
+| `50 lunch`                     | 50,000 T expense on the default card (Settings → Telegram bot)        |
+| `50 ناهار ملت`                 | …on Mellat — card names match English or Persian aliases (Cards page) |
+| `۱۲۰ سوپرمارکت بلو`            | Persian/Arabic digits work                                            |
+| `+3000 salary sepah`           | income of 3,000,000 T                                                 |
+| `12.5 taxi tejarat #work`      | 12,500 T, tagged `work`                                               |
+| a pasted or forwarded bank SMS | read by the same pipeline as the SMS endpoint (OTPs discarded)        |
+
+Amounts are in **thousand Toman**. The reply shows the saved transaction with buttons to change
+category or card, or delete it. After a category change the bot offers to create a rule
+("Always 'snapp' → Transport?").
+
+Commands: `/today` `/week` (since Saturday) `/month` (Jalali) `/budget` `/inbox` `/cards` `/last`
+`/undo` `/help`.
+
 ## Project layout
 
 ```
 src/
   app/(app)/        authenticated pages (dashboard, transactions, …)
   app/login/        login page + server actions
-  app/api/          route handlers (health, SMS ingest, export; Telegram later)
+  app/api/          route handlers (health, SMS ingest, Telegram webhook, export)
   components/       app shell, shared and shadcn/ui components
   db/               Drizzle schema, client, migrations runner, seed
   lib/              env, auth, i18n, logging, rate limiting, money/date utils,
                     ingest/ (normalize, OTP filter, parsers, matching)
   server/ingest/    ingestion pipeline + optional AI parser
+  server/services/  transaction operations shared by web actions and the bot
+  server/telegram/  grammY bot (handlers, views, polling/webhook runtime)
   proxy.ts          auth gate + CSRF Origin check
   instrumentation.ts → server/boot.ts (migrations, seed, later: scheduler & bot)
 drizzle/            SQL migrations

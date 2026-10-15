@@ -7,8 +7,9 @@ import { errorMessage, log } from "@/lib/logger";
 export type ActionResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: string; fieldErrors?: Record<string, string> };
 
-/** Thrown inside handlers for errors that are safe to show to the user. */
-export class UserError extends Error {}
+import { UserError } from "./errors";
+
+export { UserError };
 
 function fieldErrorsOf(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

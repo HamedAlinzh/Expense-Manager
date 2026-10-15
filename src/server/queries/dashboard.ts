@@ -14,11 +14,11 @@ import {
   toJalaliParts,
 } from "@/lib/format/time";
 
-type Range = { start: Date; end: Date };
+export type Range = { start: Date; end: Date };
 
 export type MonthTotals = { spentRial: number; incomeRial: number; count: number };
 
-async function totals(range: Range): Promise<MonthTotals> {
+export async function totals(range: Range): Promise<MonthTotals> {
   const [row] = await db()
     .select({
       spent: sql<string>`coalesce(sum(${transactions.amountRial}) filter (where ${transactions.type} = 'expense'), 0)`,
@@ -59,7 +59,7 @@ export type CategorySlice = {
   amountRial: number;
 };
 
-async function spendingByCategory(
+export async function spendingByCategory(
   range: Range,
 ): Promise<{ slices: CategorySlice[]; leaf: Map<number | null, number> }> {
   const [leaf, cats] = await Promise.all([
@@ -144,7 +144,7 @@ export type BudgetProgress = {
 };
 
 /** Budgets effective in `key` (latest starts_month <= key per category) with spending incl. subcategories. */
-async function budgetProgress(key: string, leaf: Map<number | null, number>): Promise<BudgetProgress[]> {
+export async function budgetProgress(key: string, leaf: Map<number | null, number>): Promise<BudgetProgress[]> {
   const rows = await db()
     .selectDistinctOn([budgets.categoryId], { budget: budgets, category: categories })
     .from(budgets)

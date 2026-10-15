@@ -26,8 +26,8 @@ const without = (texts: string[]) => COMMON_KEYWORDS.filter((k) => !texts.includ
  * Tejarat — two layouts seen in real messages:
  *  account: "*بانک تجارت*\nحساب: …\nبرداشت: 107,200 ریال\nاز طريق: شتاب\nمانده: …\n1403/08/27\n11:00"
  *  card:    "بانک تجارت\nکارت: 6219****401234\nنوع تراکنش: انتقال به محلی\nمبلغ: … ريال\nمانده: …\n1405/04/10 - 17:38"
- * "انتقال به محلی" is money arriving (balance proves it); "انتقال از …" is treated as leaving, but
- * stays ambiguous until confirmed — the pipeline's balance check corrects it when it can.
+ * "انتقال به محلی" is money arriving (balance proves it); "انتقال از شتابی" is money leaving
+ * (confirmed by the account holder).
  */
 export const tejarat: BankProfile = {
   id: "tejarat",
@@ -36,7 +36,7 @@ export const tejarat: BankProfile = {
   senderHints: [/tejarat/i],
   keywords: [
     { text: "انتقال به", type: "income" },
-    { text: "انتقال از", type: "expense", ambiguous: true },
+    { text: "انتقال از", type: "expense" },
     ...without(["انتقال به", "انتقال از"]),
   ],
   headerLines: [/^بانک\s*تجارت$/],
