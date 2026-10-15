@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { CreditCard } from "lucide-react";
-import { ComingSoon } from "@/components/common/coming-soon";
-import { t } from "@/lib/i18n";
+import { CardsView } from "@/components/cards/cards-view";
+import { currentJalaliMonth, formatJalaliMonthKey, jalaliMonthRange, monthKey } from "@/lib/format/time";
+import { listCardsWithStats } from "@/server/queries/cards";
 
-export const metadata: Metadata = { title: t("nav.cards") };
+export const metadata: Metadata = { title: "Cards" };
 
-export default function Page() {
-  return <ComingSoon title="nav.cards" subtitle="page.cards.subtitle" icon={CreditCard} phase={2} />;
+export default async function CardsPage() {
+  const { jy, jm } = currentJalaliMonth();
+  const cards = await listCardsWithStats(jalaliMonthRange(jy, jm));
+  return <CardsView cards={cards} monthLabel={formatJalaliMonthKey(monthKey(jy, jm))} />;
 }

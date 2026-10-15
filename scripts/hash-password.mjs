@@ -10,7 +10,9 @@ async function readPassword() {
   if (!process.stdin.isTTY) {
     const chunks = [];
     for await (const chunk of process.stdin) chunks.push(chunk);
-    return Buffer.concat(chunks).toString("utf8").replace(/\r?\n$/, "");
+    return Buffer.concat(chunks)
+      .toString("utf8")
+      .replace(/\r?\n$/, "");
   }
   const ask = (q) =>
     new Promise((resolve) => {

@@ -16,7 +16,9 @@
     "db:migrate": "node --env-file-if-exists=.env --import tsx scripts/db-migrate.ts",
     "db:seed": "node --env-file-if-exists=.env --import tsx scripts/db-seed.ts",
     "db:studio": "drizzle-kit studio",
-    "hash-password": "node scripts/hash-password.mjs"
+    "hash-password": "node scripts/hash-password.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.2",
@@ -47,6 +49,7 @@
     "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "16.4.1",
+    "prettier": "^3.9.10",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",

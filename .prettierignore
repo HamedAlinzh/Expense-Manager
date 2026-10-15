@@ -1,0 +1,5 @@
+node_modules
+.next
+drizzle
+src/components/ui
+package-lock.json

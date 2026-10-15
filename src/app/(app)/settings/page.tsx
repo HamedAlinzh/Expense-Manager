@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { Settings } from "lucide-react";
-import { ComingSoon } from "@/components/common/coming-soon";
-import { t } from "@/lib/i18n";
+import { SettingsView } from "@/components/settings/settings-view";
+import { getSettings } from "@/server/settings";
 
-export const metadata: Metadata = { title: t("nav.settings") };
+export const metadata: Metadata = { title: "Settings" };
 
-export default function Page() {
-  return <ComingSoon title="nav.settings" subtitle="page.settings.subtitle" icon={Settings} phase={2} />;
+export default async function SettingsPage() {
+  return <SettingsView settings={await getSettings()} />;
 }

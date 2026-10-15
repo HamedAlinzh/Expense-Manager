@@ -8,6 +8,20 @@
       "when": 1792066743078,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792074834022,
+      "tag": "0001_pg_trgm",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792074834642,
+      "tag": "0002_tx_direction_search",
+      "breakpoints": true
     }
   ]
 }

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Tags } from "lucide-react";
-import { ComingSoon } from "@/components/common/coming-soon";
-import { t } from "@/lib/i18n";
+import { CategoriesView } from "@/components/categories/categories-view";
+import { listCategoriesWithUsage, listRules } from "@/server/queries/categories";
 
-export const metadata: Metadata = { title: t("nav.categories") };
+export const metadata: Metadata = { title: "Categories & Rules" };
 
-export default function Page() {
-  return <ComingSoon title="nav.categories" subtitle="page.categories.subtitle" icon={Tags} phase={2} />;
+export default async function CategoriesPage() {
+  const [categories, rules] = await Promise.all([listCategoriesWithUsage(), listRules()]);
+  return <CategoriesView categories={categories} rules={rules} />;
 }

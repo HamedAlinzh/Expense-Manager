@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { Ellipsis } from "lucide-react";
+import { Ellipsis, Plus } from "lucide-react";
 import { cn } from "cn";
+import { useQuickAdd } from "@/components/transactions/quick-add";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { t } from "@/lib/i18n";
 import { allNavItems, isActive, mobilePrimary } from "./nav";
@@ -16,6 +17,7 @@ const itemClass =
 export function BottomNav({ logout }: { logout: ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const quickAdd = useQuickAdd();
   const primary = allNavItems.filter((i) => mobilePrimary.includes(i.href));
   const secondary = allNavItems.filter((i) => !mobilePrimary.includes(i.href));
   const moreActive = secondary.some((i) => isActive(pathname, i.href));
@@ -26,10 +28,10 @@ export function BottomNav({ logout }: { logout: ReactNode }) {
       className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/85 backdrop-blur-xl safe-bottom lg:hidden"
     >
       <div className="mx-auto flex max-w-lg items-stretch">
-        {primary.map((item) => {
+        {primary.map((item, i) => {
           const active = isActive(pathname, item.href);
           const Icon = item.icon;
-          return (
+          const link = (
             <Link
               key={item.href}
               href={item.href}
@@ -40,13 +42,30 @@ export function BottomNav({ logout }: { logout: ReactNode }) {
               {t(item.short ?? item.label)}
             </Link>
           );
+          if (i !== 2) return link;
+          return [
+            <div key="add" className="flex flex-1 items-center justify-center">
+              <button
+                type="button"
+                onClick={() => quickAdd.open()}
+                aria-label="Add transaction"
+                className="grid size-12 -translate-y-3 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background transition-transform active:scale-95 focus-visible:ring-ring focus-visible:outline-none"
+              >
+                <Plus className="size-6" />
+              </button>
+            </div>,
+            link,
+          ];
         })}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger className={cn(itemClass, moreActive || open ? "text-foreground" : "text-muted-foreground")}>
             <Ellipsis className={cn("size-5", moreActive && "text-primary")} aria-hidden />
             {t("nav.more")}
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-3xl border-t border-border pb-[max(env(safe-area-inset-bottom),1rem)]">
+          <SheetContent
+            side="bottom"
+            className="rounded-t-3xl border-t border-border pb-[max(env(safe-area-inset-bottom),1rem)]"
+          >
             <SheetHeader>
               <SheetTitle>{t("nav.more")}</SheetTitle>
             </SheetHeader>

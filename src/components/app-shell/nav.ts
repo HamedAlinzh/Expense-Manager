@@ -48,7 +48,7 @@ export const navGroups: NavGroup[] = [
 export const allNavItems = navGroups.flatMap((g) => g.items);
 
 /** Shown directly in the mobile bottom bar; everything else lives under "More". */
-export const mobilePrimary: Route[] = ["/", "/transactions", "/inbox", "/budgets"];
+export const mobilePrimary: Route[] = ["/", "/transactions", "/inbox"];
 
 export function isActive(pathname: string, href: string): boolean {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);

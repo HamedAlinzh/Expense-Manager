@@ -44,5 +44,8 @@ export async function destroySession(): Promise<void> {
 
 export async function revokeAllSessions(): Promise<void> {
   const v = await currentSessionVersion();
-  await db().update(settings).set({ sessionVersion: v + 1 }).where(eq(settings.id, 1));
+  await db()
+    .update(settings)
+    .set({ sessionVersion: v + 1 })
+    .where(eq(settings.id, 1));
 }

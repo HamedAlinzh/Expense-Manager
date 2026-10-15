@@ -24,6 +24,8 @@ export const categoryKindEnum = pgEnum("category_kind", ["expense", "income"]);
 export const txTypeEnum = pgEnum("tx_type", ["expense", "income", "transfer", "refund"]);
 /** `notification` = Android app push notification text forwarded like an SMS. */
 export const txSourceEnum = pgEnum("tx_source", ["manual", "csv", "sms", "notification", "telegram"]);
+/** Money leaving the card (`out`) or arriving (`in`). Needed for transfers, whose `type` alone is direction-less. */
+export const txDirectionEnum = pgEnum("tx_direction", ["out", "in"]);
 export const txStatusEnum = pgEnum("tx_status", ["pending_review", "confirmed"]);
 export const rawSourceEnum = pgEnum("raw_source", ["sms", "notification", "telegram"]);
 export const parseStatusEnum = pgEnum("parse_status", ["parsed", "needs_review", "failed", "ignored"]);
@@ -59,11 +61,20 @@ export const cards = pgTable(
     color: text("color").notNull(),
     cardType: cardTypeEnum("card_type").notNull().default("debit"),
     /** Names the Telegram bot matches in free text, e.g. ["mellat", "ملت"]. */
-    aliases: text("aliases").array().notNull().default(sql`'{}'::text[]`),
+    aliases: text("aliases")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     /** Masked card/account fragments seen in SMS (e.g. "1234", "0123456789"). */
-    identifierFragments: text("identifier_fragments").array().notNull().default(sql`'{}'::text[]`),
+    identifierFragments: text("identifier_fragments")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     /** SMS sender IDs or Android package names this bank uses. */
-    smsSenderIds: text("sms_sender_ids").array().notNull().default(sql`'{}'::text[]`),
+    smsSenderIds: text("sms_sender_ids")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     lastKnownBalanceRial: rial("last_known_balance_rial"),
     balanceUpdatedAt: timestamp("balance_updated_at", { withTimezone: true }),
     lowBalanceThresholdRial: rial("low_balance_threshold_rial"),
@@ -153,13 +164,17 @@ export const transactions = pgTable(
     id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
     cardId: integer("card_id").references(() => cards.id, { onDelete: "restrict" }),
     type: txTypeEnum("type").notNull(),
-    /** Always positive; direction comes from `type`. */
+    direction: txDirectionEnum("direction").notNull(),
+    /** Always positive; sign comes from `direction`. */
     amountRial: rial("amount_rial").notNull(),
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
     description: text("description").notNull().default(""),
     merchant: text("merchant"),
     categoryId: integer("category_id").references(() => categories.id, { onDelete: "set null" }),
-    tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+    tags: text("tags")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     note: text("note"),
     source: txSourceEnum("source").notNull(),
     status: txStatusEnum("status").notNull().default("confirmed"),
@@ -184,6 +199,12 @@ export const transactions = pgTable(
     index("transactions_status_idx").on(t.status),
     index("transactions_dedupe_hash_idx").on(t.dedupeHash),
     index("transactions_raw_message_idx").on(t.rawMessageId),
+    index("transactions_tags_gin").using("gin", t.tags),
+    // Requires pg_trgm (migration 0001). Queries must use the same expression: see searchExpr in transactions queries.
+    index("transactions_search_trgm").using(
+      "gin",
+      sql`(coalesce(${t.description}, '') || ' ' || coalesce(${t.merchant}, '') || ' ' || coalesce(${t.note}, '')) gin_trgm_ops`,
+    ),
   ],
 );
 
@@ -218,7 +239,10 @@ export const budgets = pgTable(
     period: budgetPeriodEnum("period").notNull().default("monthly"),
     /** Jalali month this amount applies from, "YYYY-MM" (e.g. "1405-07"). Keeps history when a budget changes. */
     startsMonth: text("starts_month").notNull(),
-    alertThresholds: smallint("alert_thresholds").array().notNull().default(sql`'{80,100}'::smallint[]`),
+    alertThresholds: smallint("alert_thresholds")
+      .array()
+      .notNull()
+      .default(sql`'{80,100}'::smallint[]`),
     active: boolean("active").notNull().default(true),
     ...timestamps,
   },
