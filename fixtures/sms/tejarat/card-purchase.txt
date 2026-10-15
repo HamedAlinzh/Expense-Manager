@@ -1,0 +1,19 @@
+# Real format, anonymized (card digits replaced, mask kept). Structured "نوع تراکنش / مبلغ" layout.
+# sender: TejaratBank
+# received_at: 2026-06-17T18:41:30+03:30
+# expect.type: expense
+# expect.amount_rial: 200000
+# expect.occurred_at: 1405/03/27 18:41
+# expect.balance_after_rial: 658600
+# expect.identifier: 6219****401234
+# expect.description: خرید شتابی · فروشگاهی
+# expect.min_confidence: 0.9
+---
+بانک تجارت
+شماره کارت: 6219****401234
+نوع تراکنش: خريد شتابي
+مبلغ: 200,000 ريال
+از طريق: فروشگاهی
+مانده: 658,600 ريال
+تاريخ:1405/03/27
+ساعت:18:41

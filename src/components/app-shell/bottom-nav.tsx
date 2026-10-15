@@ -14,7 +14,7 @@ const itemClass =
   "flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[0.68rem] font-medium transition-colors focus-visible:outline-none focus-visible:text-foreground";
 
 /** Mobile bottom navigation; secondary destinations open in a bottom sheet. */
-export function BottomNav({ logout }: { logout: ReactNode }) {
+export function BottomNav({ logout, badges = {} }: { logout: ReactNode; badges?: Record<string, number> }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const quickAdd = useQuickAdd();
@@ -38,7 +38,14 @@ export function BottomNav({ logout }: { logout: ReactNode }) {
               aria-current={active ? "page" : undefined}
               className={cn(itemClass, active ? "text-foreground" : "text-muted-foreground")}
             >
-              <Icon className={cn("size-5", active && "text-primary")} aria-hidden />
+              <span className="relative">
+                <Icon className={cn("size-5", active && "text-primary")} aria-hidden />
+                {(badges[item.href] ?? 0) > 0 && (
+                  <span className="amount absolute -top-1.5 -right-2.5 min-w-4 rounded-full bg-amber-400 px-1 text-center text-[0.6rem] leading-4 font-semibold text-black">
+                    {badges[item.href]}
+                  </span>
+                )}
+              </span>
               {t(item.short ?? item.label)}
             </Link>
           );

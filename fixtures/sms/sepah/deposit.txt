@@ -1,0 +1,15 @@
+# Real format, anonymized.
+# sender: 986715000
+# received_at: 2026-09-07T13:35:40+03:30
+# expect.type: income
+# expect.amount_rial: 135000000
+# expect.occurred_at: 1405/06/16 13:35
+# expect.balance_after_rial: 136650000
+# expect.description: واریز
+# expect.min_confidence: 0.9
+---
+بانک سپه
+واريز:135,000,000ريال
+حساب:3009876543210
+مانده:136,650,000
+6/16-13:35

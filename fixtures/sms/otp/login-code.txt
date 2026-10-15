@@ -1,0 +1,5 @@
+# SYNTHETIC OTP
+# sender: TejaratBank
+# expect.otp: true
+---
+کد تایید ورود به همراه بانک: 48213

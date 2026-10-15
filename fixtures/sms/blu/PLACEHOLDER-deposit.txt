@@ -1,0 +1,12 @@
+# PLACEHOLDER — not a real Blu message. Replace with a real (anonymized) Blu SMS/notification.
+# sender: PLACEHOLDER-BLU
+# received_at: 2026-10-15T09:01:00+03:30
+# expect.type: income
+# expect.amount_rial: 20000000
+# expect.occurred_at: 1405/07/23 09:00
+# expect.min_confidence: 0.85
+---
+بلو بانک
+واریز: 20,000,000 ریال
+مانده: 32,340,000 ریال
+1405/07/23 09:00

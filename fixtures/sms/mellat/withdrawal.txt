@@ -1,0 +1,16 @@
+# Real format, anonymized (account digits replaced).
+# sender: Bank Mellat
+# received_at: 2026-10-15T17:37:30+03:30
+# expect.bank: mellat
+# expect.type: expense
+# expect.amount_rial: 5001000
+# expect.occurred_at: 1405/07/23 17:37
+# expect.balance_after_rial: 294607975
+# expect.identifier: 1029384756
+# expect.description: برداشت
+# expect.min_confidence: 0.9
+---
+حساب1029384756
+برداشت5,001,000
+مانده294,607,975
+05/07/23-17:37

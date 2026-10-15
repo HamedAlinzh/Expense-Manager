@@ -1,0 +1,15 @@
+# Real format, anonymized.
+# sender: 986715000
+# received_at: 2026-09-15T13:11:40+03:30
+# expect.type: expense
+# expect.amount_rial: 300060000
+# expect.occurred_at: 1405/06/24 13:11
+# expect.balance_after_rial: 590000
+# expect.description: خرید اینترنتی
+# expect.min_confidence: 0.9
+---
+بانک سپه
+خريد اينترنتي: 300,060,000
+حساب : 3009876543210 
+مانده:590,000
+6/24-13:11

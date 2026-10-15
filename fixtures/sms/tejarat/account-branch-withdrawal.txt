@@ -1,0 +1,18 @@
+# Real format, anonymized. Has an extra "کدشعبه" line.
+# sender: TejaratBank
+# received_at: 2024-11-17T11:09:20+03:30
+# expect.type: expense
+# expect.amount_rial: 10000
+# expect.occurred_at: 1403/08/27 11:09
+# expect.balance_after_rial: 1478600
+# expect.description: برداشت · شعبه
+# expect.min_confidence: 0.9
+---
+*بانک تجارت* 
+حساب: 0112233445566 
+برداشت: 10,000 ریال 
+از طريق: شعبه  
+کدشعبه: 3049
+مانده: 1,478,600 ریال 
+1403/08/27
+11:09

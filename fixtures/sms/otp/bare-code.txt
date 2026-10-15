@@ -1,0 +1,5 @@
+# SYNTHETIC OTP: short standalone numeric code.
+# sender: 986715000
+# expect.otp: true
+---
+582014

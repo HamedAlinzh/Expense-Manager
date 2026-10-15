@@ -1,0 +1,19 @@
+# Real format, anonymized (account digits replaced).
+# sender: TejaratBank
+# received_at: 2024-11-17T11:00:40+03:30
+# expect.bank: tejarat
+# expect.type: expense
+# expect.amount_rial: 107200
+# expect.occurred_at: 1403/08/27 11:00
+# expect.balance_after_rial: 1488600
+# expect.identifier: 0112233445566
+# expect.description: برداشت · شتاب
+# expect.min_confidence: 0.9
+---
+*بانک تجارت* 
+حساب: 0112233445566 
+برداشت: 107,200 ریال 
+از طريق: شتاب  
+مانده: 1,488,600 ریال 
+1403/08/27
+11:00

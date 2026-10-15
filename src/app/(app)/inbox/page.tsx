@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import { Inbox } from "lucide-react";
-import { ComingSoon } from "@/components/common/coming-soon";
-import { t } from "@/lib/i18n";
+import { InboxView } from "@/components/inbox/inbox-view";
+import { ignoredMessages, pendingTransactions, unparsedMessages } from "@/server/queries/inbox";
 
-export const metadata: Metadata = { title: t("nav.inbox") };
+export const metadata: Metadata = { title: "Inbox" };
 
-export default function Page() {
-  return <ComingSoon title="nav.inbox" subtitle="page.inbox.subtitle" icon={Inbox} phase={4} />;
+export default async function InboxPage() {
+  const [pending, unparsed, ignored] = await Promise.all([
+    pendingTransactions(),
+    unparsedMessages(),
+    ignoredMessages(),
+  ]);
+  return <InboxView pending={pending} unparsed={unparsed} ignored={ignored} />;
 }

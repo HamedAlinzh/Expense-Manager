@@ -1,0 +1,16 @@
+# Real format, anonymized. "انتقال به محلی" = money arriving (the balance afterwards proves it).
+# sender: TejaratBank
+# received_at: 2026-07-01T17:38:30+03:30
+# expect.type: income
+# expect.amount_rial: 1000000000
+# expect.occurred_at: 1405/04/10 17:38
+# expect.balance_after_rial: 1000458600
+# expect.identifier: 6219****401234
+# expect.min_confidence: 0.9
+---
+بانک تجارت
+کارت: 6219****401234
+نوع تراکنش: انتقال به محلی
+مبلغ: 1,000,000,000 ريال
+مانده: 1,000,458,600 ريال
+1405/04/10 - 17:38

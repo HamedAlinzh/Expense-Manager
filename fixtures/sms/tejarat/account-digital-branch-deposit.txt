@@ -1,0 +1,17 @@
+# Real format, anonymized.
+# sender: TejaratBank
+# received_at: 2026-09-02T11:48:30+03:30
+# expect.type: income
+# expect.amount_rial: 50000000
+# expect.occurred_at: 1405/06/11 11:48
+# expect.balance_after_rial: 51059000
+# expect.description: واریز · شعبه دیجیتال
+# expect.min_confidence: 0.9
+---
+*بانک تجارت* 
+حساب: 0112233445566 
+واریز: 50,000,000 ریال 
+از طريق: شعبه ديجيتال  
+مانده: 51,059,000 ریال 
+1405/06/11
+11:48

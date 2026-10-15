@@ -1,0 +1,5 @@
+# SYNTHETIC OTP
+# sender: Bank Mellat
+# expect.otp: true
+---
+Your OTP is 552901. Do not share it.

@@ -45,7 +45,7 @@ const envSchema = z.object({
   AI_PARSER_ENABLED: boolish,
   AI_PROVIDER: z.enum(["anthropic"]).default("anthropic"),
   AI_API_KEY: optionalString,
-  AI_MODEL: z.string().default("claude-haiku-5-5"),
+  AI_MODEL: z.string().default("claude-opus-5-5"),
 
   MIGRATE_ON_START: z
     .enum(["true", "false", "1", "0", ""])

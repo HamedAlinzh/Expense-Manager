@@ -1,0 +1,17 @@
+# Real format, anonymized. Extra line with a 16-digit tracking code: must not be read as an
+# amount or masked as a card number, and "دستورپرداخت" must not trigger the "پرداخت" keyword.
+# sender: 986715000
+# received_at: 2026-09-13T12:33:40+03:30
+# expect.type: income
+# expect.amount_rial: 166000000
+# expect.occurred_at: 1405/06/22 12:33
+# expect.balance_after_rial: 300650000
+# expect.description: واریز · دستورپرداخت وارده پل
+# expect.min_confidence: 0.9
+---
+بانک سپه
+واريز:166,000,000ريال
+حساب:3009876543210
+مانده:300,650,000
+6/22-12:33
+دستورپرداخت وارده پل کدپيگيري 1405062212331089

@@ -19,9 +19,11 @@
     "hash-password": "node scripts/hash-password.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "db:demo": "node --env-file-if-exists=.env --import tsx scripts/db-demo.ts"
+    "db:demo": "node --env-file-if-exists=.env --import tsx scripts/db-demo.ts",
+    "parse-sms": "node --import tsx scripts/parse-sms.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.134.0",
     "@node-rs/argon2": "^2.2.2",
     "class-variance-authority": "^0.7.1",
     "cmdk": "^1.1.1",

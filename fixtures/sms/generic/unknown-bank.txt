@@ -1,0 +1,13 @@
+# SYNTHETIC: a bank without a profile still parses through the generic parser,
+# but never above 0.85 confidence (so it always lands in review).
+# sender: SomeOtherBank
+# received_at: 2026-10-15T12:00:30+03:30
+# expect.type: expense
+# expect.amount_rial: 1200000
+# expect.occurred_at: 1405/07/23 12:00
+# expect.max_confidence: 0.85
+---
+بانک صادرات
+خرید: 1,200,000 ریال
+مانده: 9,800,000 ریال
+1405/07/23 12:00

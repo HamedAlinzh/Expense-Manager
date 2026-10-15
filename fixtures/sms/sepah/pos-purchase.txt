@@ -1,0 +1,17 @@
+# Real format, anonymized. Sepah dates have no year: "6/16-10:34" → 1405/06/16.
+# sender: 986715000
+# received_at: 2026-09-07T10:34:40+03:30
+# expect.bank: sepah
+# expect.type: expense
+# expect.amount_rial: 200000
+# expect.occurred_at: 1405/06/16 10:34
+# expect.balance_after_rial: 1650000
+# expect.identifier: 3009876543210
+# expect.description: خرید پایانه فروش
+# expect.min_confidence: 0.9
+---
+بانک سپه
+خريد پايانه فروش: 200,000
+حساب : 3009876543210 
+مانده:1,650,000
+6/16-10:34

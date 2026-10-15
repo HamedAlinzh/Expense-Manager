@@ -1,0 +1,17 @@
+# Real format, anonymized.
+# sender: TejaratBank
+# received_at: 2026-09-03T12:37:30+03:30
+# expect.type: expense
+# expect.amount_rial: 150053800
+# expect.occurred_at: 1405/06/12 12:37
+# expect.balance_after_rial: 641285200
+# expect.description: برداشت · خودپرداز
+# expect.min_confidence: 0.9
+---
+*بانک تجارت* 
+حساب: 0112233445566 
+برداشت: 150,053,800 ریال 
+از طريق: خودپرداز  
+مانده: 641,285,200 ریال 
+1405/06/12
+12:37

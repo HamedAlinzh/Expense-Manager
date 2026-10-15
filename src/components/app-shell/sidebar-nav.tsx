@@ -6,7 +6,7 @@ import { cn } from "cn";
 import { t } from "@/lib/i18n";
 import { isActive, navGroups } from "./nav";
 
-export function SidebarNav() {
+export function SidebarNav({ badges = {} }: { badges?: Record<string, number> }) {
   const pathname = usePathname();
   return (
     <nav className="flex flex-col gap-6" aria-label="Main">
@@ -34,6 +34,14 @@ export function SidebarNav() {
                   aria-hidden
                 />
                 {t(item.label)}
+                {(badges[item.href] ?? 0) > 0 && (
+                  <span
+                    className="amount ml-auto rounded-full bg-amber-400/15 px-1.5 py-0.5 text-[0.7rem] font-medium text-amber-300"
+                    aria-label={`${badges[item.href]} to review`}
+                  >
+                    {badges[item.href]}
+                  </span>
+                )}
               </Link>
             );
           })}

@@ -12,6 +12,7 @@ import {
 } from "@/app/(app)/transactions/actions";
 import { useAppData } from "@/components/app-data";
 import { CategorySelect } from "@/components/categories/category-select";
+import { RawMessage } from "@/components/common/bidi-text";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { AmountInput, inputStringToRial, rialToInputString } from "@/components/form/amount-input";
 import { DatePicker } from "@/components/form/date-picker";
@@ -287,9 +288,7 @@ function DrawerBody({
               {raw.parserUsed && <> · parsed by {raw.parserUsed}</>}
             </p>
             {raw.body ? (
-              <pre className="font-persian text-sm leading-7 whitespace-pre-wrap" dir="auto" lang="fa">
-                {raw.body}
-              </pre>
+              <RawMessage body={raw.body} className="text-sm" />
             ) : (
               <p className="text-sm text-muted-foreground italic">Message body was not stored.</p>
             )}

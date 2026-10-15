@@ -1,0 +1,15 @@
+# PLACEHOLDER — not a real Blu message. Replace with a real (anonymized) Blu SMS/notification.
+# Uses Persian digits to exercise normalization.
+# sender: PLACEHOLDER-BLU
+# received_at: 2026-10-15T18:20:30+03:30
+# expect.type: expense
+# expect.amount_rial: 2500000
+# expect.occurred_at: 1405/07/23 18:20
+# expect.balance_after_rial: 12340000
+# expect.min_confidence: 0.85
+---
+بلوبانک
+خرید: ۲,۵۰۰,۰۰۰ ریال
+کارت: ۶۲۱۹****۹۸۷۶
+مانده: ۱۲,۳۴۰,۰۰۰ ریال
+۱۴۰۵/۰۷/۲۳ - ۱۸:۲۰

@@ -1,0 +1,13 @@
+# SYNTHETIC: Esfand message received just after Nowruz must resolve to the previous Jalali year.
+# sender: 986715000
+# received_at: 2026-03-21T00:05:00+03:30
+# expect.type: expense
+# expect.amount_rial: 450000
+# expect.occurred_at: 1404/12/29 23:50
+# expect.min_confidence: 0.9
+---
+بانک سپه
+خريد پايانه فروش: 450,000
+حساب : 3009876543210 
+مانده:1,200,000
+12/29-23:50

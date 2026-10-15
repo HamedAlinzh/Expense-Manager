@@ -1,0 +1,16 @@
+# Real format, anonymized. "انتقال از شتابی" direction is not certain from wording alone:
+# parsed as money leaving with reduced confidence (goes to review unless the balance check confirms).
+# sender: TejaratBank
+# received_at: 2026-07-03T17:20:30+03:30
+# expect.type: expense
+# expect.amount_rial: 150053800
+# expect.occurred_at: 1405/04/12 17:20
+# expect.balance_after_rial: 1080351000
+# expect.max_confidence: 0.89
+---
+بانک تجارت
+کارت: 6219****401234
+نوع تراکنش: انتقال از شتابي
+مبلغ: 150,053,800 ريال
+مانده: 1,080,351,000 ريال
+1405/04/12 - 17:20

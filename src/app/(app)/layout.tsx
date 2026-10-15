@@ -8,16 +8,19 @@ import { QuickAddProvider } from "@/components/transactions/quick-add";
 import { requireSession } from "@/lib/auth/session";
 import { listCards } from "@/server/queries/cards";
 import { listCategories } from "@/server/queries/categories";
+import { inboxCounts } from "@/server/queries/inbox";
 import { getPrefs, getSettings } from "@/server/settings";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   await requireSession();
-  const [prefs, settings, cards, categories] = await Promise.all([
+  const [prefs, settings, cards, categories, inbox] = await Promise.all([
     getPrefs(),
     getSettings(),
     listCards({ includeArchived: true }),
     listCategories({ includeArchived: true }),
+    inboxCounts(),
   ]);
+  const badges = { "/inbox": inbox.total };
   const appData = {
     cards: cards.map((c) => ({ id: c.id, name: c.name, color: c.color, bank: c.bank, archived: c.archived })),
     categories: categories.map((c) => ({
@@ -37,14 +40,14 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       <AppDataProvider value={appData}>
         <QuickAddProvider>
           <div className="min-h-dvh">
-            <Sidebar />
+            <Sidebar badges={badges} />
             <MobileHeader />
             <main className="lg:pl-64">
               <div className="mx-auto w-full max-w-7xl px-4 pt-6 pb-28 sm:px-6 lg:px-10 lg:pt-10 lg:pb-12">
                 {children}
               </div>
             </main>
-            <BottomNav logout={<LogoutButton />} />
+            <BottomNav logout={<LogoutButton />} badges={badges} />
           </div>
         </QuickAddProvider>
       </AppDataProvider>

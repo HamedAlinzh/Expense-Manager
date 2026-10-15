@@ -27,8 +27,9 @@ export const seedCategories: SeedCategory[] = [
 ];
 
 /**
- * Sender IDs are PLACEHOLDERS — replace them on the Cards page with the exact
- * sender shown on your phone (or the Android package name for app notifications).
+ * Sender IDs as they appear on the phone. Blu's is still a PLACEHOLDER — set it on the Cards page
+ * once its first SMS arrives (unknown senders show up in the inbox with an "Add sender" button).
+ * Account/card identifiers are learned automatically from the first SMS of each card.
  */
 export const seedCards: NewCard[] = [
   {
@@ -37,7 +38,7 @@ export const seedCards: NewCard[] = [
     color: "#f59e0b",
     cardType: "debit",
     aliases: ["sepah", "سپه"],
-    smsSenderIds: ["PLACEHOLDER-SEPAH"],
+    smsSenderIds: ["986715000"],
     sortOrder: 1,
   },
   {
@@ -46,7 +47,7 @@ export const seedCards: NewCard[] = [
     color: "#e11d48",
     cardType: "debit",
     aliases: ["mellat", "ملت"],
-    smsSenderIds: ["PLACEHOLDER-MELLAT"],
+    smsSenderIds: ["Bank Mellat"],
     sortOrder: 2,
   },
   {
@@ -55,7 +56,7 @@ export const seedCards: NewCard[] = [
     color: "#2563eb",
     cardType: "debit",
     aliases: ["tejarat", "تجارت"],
-    smsSenderIds: ["PLACEHOLDER-TEJARAT"],
+    smsSenderIds: ["TejaratBank"],
     sortOrder: 3,
   },
   {
