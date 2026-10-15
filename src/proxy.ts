@@ -22,8 +22,42 @@ function sameOrigin(req: NextRequest): boolean {
   }
 }
 
+/**
+ * Strict CSP: scripts only with this request's nonce (Next.js applies it to its own scripts).
+ * Inline style *attributes* are allowed because React/Radix/Recharts set them; they can't run code.
+ */
+function contentSecurityPolicy(nonce: string): string {
+  const dev = process.env.NODE_ENV === "development";
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' blob: data:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    ...(dev ? [] : ["upgrade-insecure-requests"]),
+  ].join("; ");
+}
+
+/** Continues to the page with a fresh nonce on the request (for rendering) and the CSP on the response. */
+function nextWithCsp(req: NextRequest): NextResponse {
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const csp = contentSecurityPolicy(nonce);
+  const headers = new Headers(req.headers);
+  headers.set("x-nonce", nonce);
+  headers.set("Content-Security-Policy", csp);
+  const res = NextResponse.next({ request: { headers } });
+  res.headers.set("Content-Security-Policy", csp);
+  return res;
+}
+
 export async function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
+  const isApi = pathname.startsWith("/api/");
 
   if (startsWithAny(pathname, SELF_AUTHENTICATED)) return NextResponse.next();
 
@@ -31,15 +65,13 @@ export async function proxy(req: NextRequest) {
     return new NextResponse("Cross-origin request blocked", { status: 403 });
   }
 
-  if (startsWithAny(pathname, PUBLIC_PAGES)) return NextResponse.next();
+  if (startsWithAny(pathname, PUBLIC_PAGES)) return nextWithCsp(req);
 
   // Signature/expiry only; revocation (session version) is checked in the data layer.
   const claims = await verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value);
-  if (claims) return NextResponse.next();
+  if (claims) return isApi ? NextResponse.next() : nextWithCsp(req);
 
-  if (pathname.startsWith("/api/")) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
+  if (isApi) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const login = new URL("/login", req.url);
   if (pathname !== "/") login.searchParams.set("next", pathname + search);
   return NextResponse.redirect(login);

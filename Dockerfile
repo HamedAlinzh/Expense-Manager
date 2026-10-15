@@ -24,8 +24,10 @@ ENV NODE_ENV=production \
     TZ=Asia/Tehran \
     PORT=3000 \
     HOSTNAME=0.0.0.0
-RUN apk add --no-cache tzdata \
- && addgroup -S -g 1001 app && adduser -S -u 1001 -G app app
+# postgresql17-client provides pg_dump for the nightly backup job (must match the server's major version).
+RUN apk add --no-cache tzdata postgresql17-client \
+ && addgroup -S -g 1001 app && adduser -S -u 1001 -G app app \
+ && mkdir -p /backups && chown app:app /backups
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=app:app /app/.next/standalone ./

@@ -1,12 +1,27 @@
 # Expense Manager
 
-A self-hosted, single-user expense manager for Iranian bank cards (Sepah, Mellat, Tejarat, Blu). Transactions arrive from forwarded bank SMS and app notifications, and from a Telegram bot.
+A self-hosted, single-user expense manager for Iranian bank cards (Sepah, Mellat, Tejarat, Blu).
+Bank SMS and app notifications are forwarded from an Android phone and turned into transactions
+automatically; a Telegram bot handles quick entries, questions and alerts.
 
-> Status: **Phase 7 of 8** (phase 6, CSV/XLSX import, was skipped) — everything except final hardening is done: cards, categories & rules, transactions, dashboard, SMS/notification ingestion, Telegram bot, budgets, alerts, recurring payments, insights and scheduled summaries. Next: hardening, backups and the final README. This README is completed in phase 8.
+- **Ledger** — every expense, income, refund and transfer with date/time (Jalali), card, amount,
+  description, category, tags, notes and splits; fast filters, saved views, bulk edits, CSV export.
+- **Automatic ingestion** — bank SMS (and Blu notifications) parsed per bank, matched to the card,
+  categorized by rules, de-duplicated, transfers between your cards paired; uncertain items wait in
+  the **Inbox**.
+- **Telegram bot** — `50 ناهار ملت` style quick entries (thousand Toman), forwarded SMS, summaries
+  and inline editing.
+- **Planning** — Jalali-month budgets with alerts, recurring-payment detection, insights, weekly and
+  monthly summaries, unusual-expense and low-balance alerts.
+- **Self-hosted** — Docker Compose (app, PostgreSQL, Caddy with automatic HTTPS), nightly backups.
 
 ## Stack
 
-Next.js 16 (App Router, TypeScript strict) · PostgreSQL 17 + Drizzle ORM · Tailwind CSS 4 + shadcn/ui · Zod · Vitest · Docker Compose (app, Postgres, Caddy)
+Next.js 16 (App Router, TypeScript strict) · PostgreSQL 17 + Drizzle ORM · Tailwind CSS 4 +
+shadcn/ui + Recharts · grammY · Zod · Vitest · node-cron · Docker Compose (app, Postgres, Caddy)
+
+Money is stored as integer **Rial**; the UI shows Toman by default (Settings → Display); the bot's
+input unit is **thousand Toman**. All dates are Asia/Tehran; months and budgets follow the Jalali calendar.
 
 ## Local development
 
@@ -16,21 +31,25 @@ Requirements: Node 22+, Docker with Compose v2.
 npm install
 cp .env.example .env
 # Fill in .env:
-#   SESSION_SECRET  → openssl rand -base64 48
-#   INGEST_TOKEN    → openssl rand -hex 32
+#   SESSION_SECRET      → openssl rand -base64 48
+#   INGEST_TOKEN        → openssl rand -hex 32
 #   ADMIN_PASSWORD_HASH → run: npm run hash-password   (paste the printed line)
+#   TELEGRAM_*          → optional; TELEGRAM_MODE=polling for local testing (see Telegram bot)
 
 npm run db:up        # Postgres on 127.0.0.1:5442
 npm run dev          # http://localhost:3000
+npm run db:demo      # optional: ~4 months of realistic #demo data (remove with -- --remove)
 ```
 
-On startup the server applies pending migrations and, if the database is empty, seeds default categories, starter categorization rules and your four cards. You can turn this off with `MIGRATE_ON_START` and `SEED_ON_EMPTY`.
+On startup the server applies pending migrations and, if the database is empty, seeds default
+categories, starter categorization rules and your four cards (`MIGRATE_ON_START`, `SEED_ON_EMPTY`).
 
 | Script                                   | Purpose                                              |
 | ---------------------------------------- | ---------------------------------------------------- |
 | `npm run dev`                            | Dev server                                           |
-| `npm test`                               | Unit tests (Vitest)                                  |
+| `npm test`                               | Unit tests (Vitest, includes the SMS fixtures)       |
 | `npm run typecheck` / `npm run lint`     | Static checks                                        |
+| `npm run format`                         | Prettier                                             |
 | `npm run db:generate`                    | Create a migration after editing `src/db/schema.ts`  |
 | `npm run db:migrate` / `npm run db:seed` | Apply migrations / seed manually                     |
 | `npm run db:studio`                      | Browse the database                                  |
@@ -38,20 +57,78 @@ On startup the server applies pending migrations and, if the database is empty, 
 | `npm run db:demo` (`-- --remove`)        | Add (or remove) ~4 months of `#demo` data — dev only |
 | `npm run parse-sms -- file.txt`          | Show how the parser reads a message (no database)    |
 
-## Production (quick version)
+## Deploying to a VPS (step by step)
+
+You need a VPS (e.g. Ubuntu 24.04, 1 vCPU / 1–2 GB RAM is plenty) and a domain name.
+
+**1. DNS.** Create an `A` record for your (sub)domain, e.g. `money.example.com` → the VPS's IPv4
+address. Wait until `ping money.example.com` shows that IP.
+
+**2. Prepare the server** (as root, once):
 
 ```bash
-cp .env.example .env    # set DOMAIN, ACME_EMAIL, POSTGRES_PASSWORD (openssl rand -hex 24), secrets
-docker compose up -d --build
+adduser deploy && usermod -aG sudo deploy          # a non-root user (log in with SSH keys)
+ufw allow OpenSSH && ufw allow 80/tcp && ufw allow 443/tcp && ufw allow 443/udp && ufw enable
+curl -fsSL https://get.docker.com | sh              # Docker Engine + Compose plugin
+usermod -aG docker deploy
 ```
 
-Caddy obtains a TLS certificate for `DOMAIN` automatically. Point the domain's DNS A record at the VPS and open ports 80 and 443 first.
+Log out and back in as `deploy`.
 
-To generate the password hash on the server:
+**3. Get the code.**
 
 ```bash
+git clone https://github.com/HamedAlinzh/Expense-Manager.git
+cd Expense-Manager
+```
+
+(For a private repository use a GitHub deploy key or a fine-grained personal access token.)
+
+**4. Configure.** `cp .env.example .env && chmod 600 .env`, then edit `.env`:
+
+| Variable                                          | Value                                                                         |
+| ------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `DOMAIN`                                          | `money.example.com`                                                           |
+| `ACME_EMAIL`                                      | your e-mail (Let's Encrypt notices)                                           |
+| `APP_URL`                                         | `https://money.example.com`                                                   |
+| `POSTGRES_PASSWORD`                               | `openssl rand -hex 24` (URL-safe; `DATABASE_URL` is built from it by Compose) |
+| `SESSION_SECRET`                                  | `openssl rand -base64 48`                                                     |
+| `INGEST_TOKEN`                                    | `openssl rand -hex 32` — also goes into MacroDroid                            |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_USER_IDS` | from BotFather / your user ID                                                 |
+| `TELEGRAM_MODE`                                   | `webhook`                                                                     |
+| `TELEGRAM_WEBHOOK_SECRET`                         | `openssl rand -hex 32`                                                        |
+| `ADMIN_PASSWORD_HASH`                             | step 5                                                                        |
+| `AI_*`                                            | optional AI fallback parser (off by default)                                  |
+
+Everything else can stay at its default (`TZ=Asia/Tehran`, `BACKUP_KEEP=14`, `LOG_LEVEL=info`).
+
+**5. Build and set the password.**
+
+```bash
+docker compose build
 docker compose run --rm --no-deps app node scripts/hash-password.mjs
+# type the password twice, paste the printed ADMIN_PASSWORD_HASH=... line into .env
 ```
+
+**6. Start.**
+
+```bash
+docker compose up -d
+docker compose logs -f app     # expect: migrations applied · seeded defaults · scheduler started · telegram: webhook registered
+```
+
+Caddy fetches the TLS certificate on the first request (a few seconds).
+
+**7. Check and finish setup.**
+
+- `curl https://money.example.com/api/health` → `{"status":"ok","db":"ok",…}`
+- Log in, open **Cards** and check each card's SMS sender (the defaults are `Bank Mellat`,
+  `TejaratBank`, `986715000`; Blu is added from its first message — see the Inbox).
+- **Settings**: display unit, calendar, default card for the bot, notification switches.
+- Set up MacroDroid on your phone (below) and send yourself a small transaction.
+
+Moving data from local development: **Settings → Download backup** locally, then
+**Settings → Restore from backup** on the server.
 
 ## Bank SMS & notification forwarding (MacroDroid)
 
@@ -124,8 +201,8 @@ Menu names differ slightly between MacroDroid versions; the idea is always _trig
 5. Test: send yourself a small transaction, then check **Inbox** or **Transactions**. On the server,
    `docker compose logs app | grep ingest` shows each message's outcome (never its text or amount).
 
-If the phone was offline, the bank's SMS isn't lost: forward it later (or paste it to the Telegram
-bot in phase 5). Duplicates are recognised, so re-sending is always safe.
+If the phone was offline, the bank's SMS isn't lost: forward it later or paste it to the Telegram
+bot. Duplicates are recognised, so re-sending is always safe.
 
 ### Tuning the parsers
 
@@ -155,6 +232,27 @@ without saving it, and **Re-parse all** re-runs unparsed messages after you chan
 
 Switching from webhook to polling removes the webhook automatically. Only one server may poll a
 bot at a time — stop local polling before deploying in webhook mode with the same token.
+
+### Switching the bot to webhook mode (production)
+
+Do this when the app is running on the VPS with HTTPS working (`https://YOUR_DOMAIN/api/health` answers).
+
+1. **Stop local polling first.** In your laptop's `.env` set `TELEGRAM_MODE=off` (or give local
+   development its own test bot from BotFather). A local server in polling mode removes the webhook
+   when it starts and would silently disconnect production.
+2. Optional but recommended: `/revoke` the token in BotFather and use the new one on the server.
+3. In the **server's** `.env`:
+   ```
+   APP_URL=https://YOUR_DOMAIN
+   TELEGRAM_MODE=webhook
+   TELEGRAM_WEBHOOK_SECRET=<openssl rand -hex 32>
+   TELEGRAM_BOT_TOKEN=<token>
+   TELEGRAM_ALLOWED_USER_IDS=<your id>
+   ```
+4. `docker compose up -d` (recreates the app with the new settings). The log shows
+   `telegram: webhook registered`. Check with
+   `curl -s https://api.telegram.org/bot<TOKEN>/getWebhookInfo` — `url` is your domain and
+   `last_error_message` is empty.
 
 ### Using it
 
@@ -222,25 +320,111 @@ Jobs run inside the app container (node-cron, Asia/Tehran): delivery of queued n
 `job_runs` table (or under a Postgres advisory lock), so overlaps and restarts are safe; on startup
 the app catches up on anything missed while it was down.
 
+## Backup & restore
+
+### Automatic database backups
+
+Every night at 03:30 (Tehran) the app runs `pg_dump` into the `backups` Docker volume and keeps the
+newest 14 (`BACKUP_KEEP`). **Settings → Database backups** lists them and has **Back up now**.
+
+The volume lives on the same server as the database, so **copy backups off the server regularly**:
+
+```bash
+# on the VPS
+cd ~/Expense-Manager
+docker compose exec app ls -lh /backups
+docker compose cp app:/backups ./backups-copy
+
+# on your laptop
+scp -r USER@VPS_IP:~/Expense-Manager/backups-copy ./expense-backups
+```
+
+### Restoring a database backup (tested procedure)
+
+```bash
+cd ~/Expense-Manager
+docker compose exec app ls /backups                       # pick a file
+docker compose cp app:/backups/expense-2026-10-15-033000.dump ./restore.dump
+docker compose stop app                                    # nothing writes during the restore
+docker compose exec -T postgres pg_restore --clean --if-exists --no-owner \
+  -U "$(grep ^POSTGRES_USER .env | cut -d= -f2)" -d "$(grep ^POSTGRES_DB .env | cut -d= -f2)" < restore.dump
+docker compose start app
+curl -s https://YOUR_DOMAIN/api/health
+```
+
+To restore a dump copied from your laptop, `scp` it to the server and start from the
+`docker compose stop app` step.
+
+### JSON export / restore (from the app)
+
+**Settings → Data → Download backup** saves everything (cards, categories, rules, transactions,
+splits, raw SMS, budgets, recurring payments, settings) as JSON. **Restore from backup** replaces all
+data with a JSON backup in a single transaction — if anything is wrong with the file, nothing changes.
+Useful for moving between machines, e.g. from local development to the server.
+
+## Updating
+
+```bash
+cd ~/Expense-Manager
+git pull
+docker compose up -d --build     # migrations run automatically on start
+docker compose logs --tail=50 app
+```
+
+## Security
+
+- **Login:** one password, stored as an argon2id hash; signed HTTP-only session cookie (Secure,
+  SameSite=Lax, 30 days); 5 attempts per 15 minutes per IP; **Settings → Log out everywhere**
+  revokes every session.
+- **Requests:** every state-changing request must come from the app's own origin (CSRF protection);
+  all input is validated with Zod; database access is parameterized (Drizzle).
+- **Headers:** strict Content-Security-Policy with a per-request nonce, `X-Frame-Options: DENY`,
+  `nosniff`, `Referrer-Policy`, `Permissions-Policy`, HSTS (Caddy).
+- **Endpoints:** SMS ingest needs `X-Ingest-Token`, the Telegram webhook needs Telegram's secret
+  header (both compared in constant time and rate limited); the bot only answers
+  `TELEGRAM_ALLOWED_USER_IDS` in private chats.
+- **Data minimisation:** one-time passwords are discarded unread; full card numbers are masked;
+  unknown senders' personal messages aren't stored; production logs never contain SMS text or
+  amounts (`LOG_LEVEL=info`).
+- **Infrastructure:** Postgres isn't exposed outside Docker; the app runs as a non-root user;
+  only ports 80/443 are public.
+
+Recommendations: keep the GitHub repository private, use a long unique password, rotate the bot
+token if it was ever shared, and enable unattended security updates on the VPS
+(`sudo apt install unattended-upgrades`).
+
+## Troubleshooting
+
+| Symptom                           | Check                                                                                                    |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Browser shows a certificate error | DNS A record points to the VPS, ports 80/443 open, `docker compose logs caddy`                           |
+| `502` from Caddy                  | `docker compose ps` — is `app` healthy? `docker compose logs app`                                        |
+| Can't log in                      | `ADMIN_PASSWORD_HASH` is the full `b64:…` line from the hash script; `SESSION_SECRET` ≥ 32 chars         |
+| MacroDroid gets `401`             | `X-Ingest-Token` header equals `INGEST_TOKEN` exactly                                                    |
+| SMS arrive but no transaction     | **Inbox → Ignored** (sender not on a card → _Add sender to card_) or **Unparsed** (use _Test a message_) |
+| Bot doesn't answer                | `getWebhookInfo` (see above); `409 Conflict` in logs means another server is polling the same bot        |
+| No Telegram alerts                | **Settings → Notifications** switches; `NOTIFY_DRY_RUN` must be `false`; quiet hours 23:00–08:00         |
+| Backups missing                   | `docker compose logs app \| grep backup`; **Settings → Back up now** shows the error                     |
+
 ## Project layout
 
 ```
 src/
   app/(app)/        authenticated pages (dashboard, transactions, …)
   app/login/        login page + server actions
-  app/api/          route handlers (health, SMS ingest, Telegram webhook, export)
+  app/api/          route handlers (health, SMS ingest, Telegram webhook, CSV/JSON export, JSON restore)
   components/       app shell, shared and shadcn/ui components
   db/               Drizzle schema, client, migrations runner, seed
   lib/              env, auth, i18n, logging, rate limiting, money/date utils,
                     ingest/ (normalize, OTP filter, parsers, matching)
   server/ingest/    ingestion pipeline + optional AI parser
-  server/services/  transaction operations shared by web actions and the bot
+  server/services/  transaction operations shared by web actions and the bot; JSON restore
   server/telegram/  grammY bot (handlers, views, polling/webhook runtime)
   server/alerts/    budget / unusual-expense / low-balance checks after each transaction
-  server/jobs/      scheduler, recurring detection, weekly & monthly summaries
+  server/jobs/      scheduler, backups (pg_dump), recurring detection, weekly & monthly summaries
   server/notify/    notification queue (quiet hours, dedupe, retries)
-  proxy.ts          auth gate + CSRF Origin check
-  instrumentation.ts → server/boot.ts (migrations, seed, later: scheduler & bot)
+  proxy.ts          auth gate, CSRF Origin check, Content-Security-Policy nonce
+  instrumentation.ts → server/boot.ts (migrations, seed, scheduler, Telegram bot)
 drizzle/            SQL migrations
 scripts/            CLI helpers
 fixtures/sms/       real (anonymized) bank messages used as parser tests

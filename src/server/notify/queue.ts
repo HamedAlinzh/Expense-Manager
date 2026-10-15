@@ -46,7 +46,8 @@ async function deliver(id: number): Promise<void> {
   if (!n) return;
   const html = (n.payload as { html?: string } | null)?.html ?? "";
   if (env().NOTIFY_DRY_RUN) {
-    log.info("notification (dry run)", { id, type: n.type, text: (n.payload as { text?: string } | null)?.text });
+    log.info("notification (dry run)", { id, type: n.type });
+    log.debug("notification (dry run) text", { text: (n.payload as { text?: string } | null)?.text });
     await db()
       .update(notificationsLog)
       .set({ status: "sent", sentAt: new Date(), error: "dry_run" })

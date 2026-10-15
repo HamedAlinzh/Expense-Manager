@@ -166,11 +166,13 @@ export function InsightsView({ data }: { data: InsightsData }) {
                           </span>
                         </span>
                       </td>
-                      <td className="amount py-2 text-right text-muted-foreground">
+                      <td className="amount py-2 pl-3 text-right whitespace-nowrap text-muted-foreground">
                         {r.prevRial ? fmt(r.prevRial) : "—"}
                       </td>
-                      <td className="amount py-2 text-right">{r.thisRial ? fmt(r.thisRial) : "—"}</td>
-                      <td className="py-2 text-right">
+                      <td className="amount py-2 pl-3 text-right whitespace-nowrap">
+                        {r.thisRial ? fmt(r.thisRial) : "—"}
+                      </td>
+                      <td className="py-2 pl-3 text-right whitespace-nowrap">
                         <Change pct={r.deltaPct} delta={r.delta} />
                       </td>
                     </tr>

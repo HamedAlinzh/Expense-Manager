@@ -1,9 +1,12 @@
 "use client";
 
-import { Download, LogOut } from "lucide-react";
-import { type ReactNode, useState, useTransition } from "react";
+import { DatabaseBackup, Download, LoaderCircle, LogOut, Upload } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { type ReactNode, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { logoutEverywhere, updateSettings } from "@/app/(app)/settings/actions";
+import { backupNow, logoutEverywhere, updateSettings } from "@/app/(app)/settings/actions";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { DateTime } from "@/components/prefs/display";
 import { PageHeader } from "@/components/app-shell/page-header";
 import { useAppData } from "@/components/app-data";
 import { CardPicker } from "@/components/transactions/card-picker";
@@ -16,6 +19,10 @@ import { formatMoney } from "@/lib/format/money";
 import { formatDate } from "@/lib/format/time";
 
 type Patch = Parameters<typeof updateSettings>[0];
+type BackupFile = { name: string; bytes: number; createdAt: Date };
+
+const size = (b: number) =>
+  b > 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`;
 
 function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
   return (
@@ -41,7 +48,15 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   );
 }
 
-export function SettingsView({ settings }: { settings: Settings }) {
+export function SettingsView({
+  settings,
+  backups,
+  backupDir,
+}: {
+  settings: Settings;
+  backups: BackupFile[];
+  backupDir: string;
+}) {
   const { cards } = useAppData();
   const [s, setS] = useState(settings);
   const [, startTransition] = useTransition();
@@ -140,14 +155,22 @@ export function SettingsView({ settings }: { settings: Settings }) {
         ))}
       </Section>
 
-      <Section title="Data" description="Your data stays on your server. Backups are plain JSON.">
-        <Row label="Export everything" hint="Cards, categories, rules, transactions, budgets and raw messages.">
+      <Section title="Data" description="Your data stays on your server.">
+        <Row label="Export everything" hint="Cards, categories, rules, transactions, budgets and raw messages as JSON.">
           <Button variant="outline" asChild>
             <a href="/api/export" download>
               <Download /> Download backup
             </a>
           </Button>
         </Row>
+        <RestoreRow />
+      </Section>
+
+      <Section
+        title="Database backups"
+        description={`Automatic every night at 03:30 (Tehran); the newest 14 are kept in ${backupDir}.`}
+      >
+        <BackupsPanel backups={backups} />
       </Section>
 
       <Section title="Security">
@@ -182,5 +205,100 @@ function MinutesInput({ value, onCommit }: { value: number; onCommit: (v: number
       />
       <span className="text-sm text-muted-foreground">min</span>
     </div>
+  );
+}
+
+function BackupsPanel({ backups }: { backups: BackupFile[] }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          disabled={pending}
+          onClick={() =>
+            startTransition(async () => {
+              const res = await backupNow({});
+              if (res.ok) {
+                toast.success(`Backup written: ${res.data.name} (${size(res.data.bytes)})`);
+                router.refresh();
+              } else toast.error(res.error);
+            })
+          }
+        >
+          {pending ? <LoaderCircle className="animate-spin" /> : <DatabaseBackup />} Back up now
+        </Button>
+      </div>
+      {backups.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No database backups yet.</p>
+      ) : (
+        <ul className="divide-y divide-border rounded-xl border border-border text-sm">
+          {backups.map((b) => (
+            <li key={b.name} className="flex items-center justify-between gap-3 px-3 py-2">
+              <span className="truncate font-mono text-xs">{b.name}</span>
+              <span className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
+                <DateTime date={b.createdAt} time />
+                <span className="amount w-16 text-right">{size(b.bytes)}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="text-xs text-muted-foreground">
+        Restoring a database backup is done on the server — see “Backup &amp; restore” in the README.
+      </p>
+    </div>
+  );
+}
+
+function RestoreRow() {
+  const router = useRouter();
+  const input = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+
+  async function restore() {
+    if (!file) return;
+    const body = new FormData();
+    body.set("file", file);
+    const res = await fetch("/api/import/backup", { method: "POST", body });
+    const json = (await res.json().catch(() => ({}))) as { error?: string; counts?: Record<string, number> };
+    if (!res.ok) {
+      toast.error(json.error ?? "Restore failed");
+    } else {
+      toast.success(`Restored ${json.counts?.transactions ?? 0} transactions and ${json.counts?.cards ?? 0} cards`);
+      router.refresh();
+    }
+    setFile(null);
+    if (input.current) input.current.value = "";
+  }
+
+  return (
+    <Row label="Restore from backup" hint="Replaces ALL current data with a JSON backup file.">
+      <input
+        ref={input}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+      />
+      <Button variant="outline" onClick={() => input.current?.click()}>
+        <Upload /> Choose file…
+      </Button>
+      <ConfirmDialog
+        open={file !== null}
+        onOpenChange={(o) => {
+          if (!o) {
+            setFile(null);
+            if (input.current) input.current.value = "";
+          }
+        }}
+        title="Replace all data?"
+        description={`Everything currently in the app will be replaced with the contents of “${file?.name ?? ""}”. Download a fresh backup first if you might need today's data.`}
+        confirmLabel="Replace everything"
+        destructive
+        onConfirm={restore}
+      />
+    </Row>
   );
 }

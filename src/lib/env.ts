@@ -56,6 +56,10 @@ const envSchema = z.object({
     .optional()
     .transform((v) => v !== "false" && v !== "0"),
 
+  /** Where pg_dump backups are written (a Docker volume in production) and how many to keep. */
+  BACKUP_DIR: optionalString,
+  BACKUP_KEEP: z.coerce.number().int().min(1).max(365).default(14),
+
   /** Log notifications instead of sending them to Telegram (development). */
   NOTIFY_DRY_RUN: boolish,
 

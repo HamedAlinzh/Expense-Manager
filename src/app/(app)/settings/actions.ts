@@ -8,6 +8,7 @@ import { cards, settings } from "@/db/schema";
 import { destroySession, requireSession, revokeAllSessions } from "@/lib/auth/session";
 import { idSchema } from "@/lib/validation";
 import { defineAction, UserError } from "@/server/action-utils";
+import { runBackup } from "@/server/jobs/backup";
 
 const settingsSchema = z
   .object({
@@ -49,3 +50,10 @@ export async function logoutEverywhere(): Promise<void> {
   await destroySession();
   redirect("/login");
 }
+
+/** Runs a pg_dump backup immediately (same as the nightly job). */
+export const backupNow = defineAction(z.object({}), async () => {
+  const file = await runBackup();
+  if (!file) throw new UserError("pg_dump isn't available here — backups run inside the Docker container.");
+  return { name: file.name, bytes: file.bytes };
+});

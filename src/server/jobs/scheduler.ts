@@ -3,6 +3,7 @@ import cron from "node-cron";
 import { APP_TZ, addDaysToKey, dayKeyOf, tehranParts, toJalaliParts } from "@/lib/format/time";
 import { errorMessage, log } from "@/lib/logger";
 import { deliverDue } from "@/server/notify/queue";
+import { runBackup } from "./backup";
 import { runRecurringDetection } from "./recurring";
 import { runOnce, withLock } from "./runner";
 import { sendMonthlySummary, sendWeeklySummary } from "./summaries";
@@ -24,6 +25,7 @@ function dueWeeklyKey(now: Date): string | null {
 }
 
 export const jobs = {
+  backup: (now = new Date()) => runOnce("backup", `backup:${dayKeyOf(now)}`, async () => void (await runBackup(now))),
   deliver: () => withLock("deliver", () => deliverDue()),
   recurring: (now = new Date()) =>
     runOnce("recurring", `recurring:${dayKeyOf(now)}`, async () => void (await runRecurringDetection(now))),
@@ -73,6 +75,7 @@ export function startScheduler(): void {
     safe("catch-up", async () => {
       const now = new Date();
       await jobs.deliver();
+      if (tehranParts(now).hour >= 4) await jobs.backup(now);
       if (tehranParts(now).hour >= 8) await jobs.recurring(now);
       await jobs.weekly(now);
       // Friday's summary can still go out on Saturday if the server was down all Friday.

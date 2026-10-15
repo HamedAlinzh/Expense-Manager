@@ -34,7 +34,8 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ./backups:/backups
+      # Nightly pg_dump files (newest 14). Copy them off the server regularly — see README "Backup & restore".
+      - backups:/backups
     expose:
       - "3000"
 
@@ -57,5 +58,6 @@ services:
 
 volumes:
   pgdata:
+  backups:
   caddy_data:
   caddy_config:

@@ -104,7 +104,10 @@ export function DataTable({
               {r.map((c, j) => (
                 <td
                   key={j}
-                  className={cn("amount px-3 py-1.5", j === 0 ? "text-left text-muted-foreground" : "text-right")}
+                  className={cn(
+                    "amount px-3 py-1.5 whitespace-nowrap",
+                    j === 0 ? "text-left text-muted-foreground" : "text-right",
+                  )}
                 >
                   {c}
                 </td>

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Inter, Vazirmatn } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,7 +23,10 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Reading the request makes every page render per request, so Next.js can attach the CSP nonce
+  // (set by proxy.ts) to its scripts — including the not-found page.
+  await headers();
   return (
     <html lang="en" className={`dark ${inter.variable} ${vazirmatn.variable} h-full antialiased`}>
       <body className="min-h-full">
