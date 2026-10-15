@@ -35,6 +35,7 @@
     "jose": "^6.2.12",
     "lucide-react": "^1.57.0",
     "next": "16.4.1",
+    "node-cron": "^4.6.0",
     "postgres": "^3.4.9",
     "radix-ui": "^1.8.1",
     "react": "19.3.0",

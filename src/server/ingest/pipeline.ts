@@ -11,6 +11,7 @@ import { type ParseResult, parseMessage } from "@/lib/ingest/parsers";
 import { detectOtp, maskCardNumbers } from "@/lib/ingest/security";
 import { errorMessage, log } from "@/lib/logger";
 import { applyRules } from "@/lib/rules";
+import { afterTransactionWrite } from "@/server/alerts/hooks";
 import { loadRuleSet } from "@/server/queries/categories";
 import { aiParse } from "./ai-parser";
 
@@ -252,6 +253,7 @@ export async function processRawMessage(rawId: number, opts: { allowAi?: boolean
     const transfer = card ? await pairTransfer(created!.id, card.id, finalDirection, final, cfg) : false;
     if (card) await afterCardActivity(card, final, match.learn);
     await markRaw({ parseStatus: "parsed", parserUsed: final.parser, parseResult: serialize(final), error: null });
+    afterTransactionWrite(created!.id);
     log.info("ingest: created transaction", {
       rawId,
       transactionId: created!.id,

@@ -2,7 +2,7 @@
 
 A self-hosted, single-user expense manager for Iranian bank cards (Sepah, Mellat, Tejarat, Blu). Transactions arrive from forwarded bank SMS and app notifications, and from a Telegram bot.
 
-> Status: **Phase 5 of 8** — foundation, cards, categories & rules, transactions, settings, dashboard, SMS/notification ingestion and the Telegram bot are done. Next: import, alerts and hardening. This README is completed in phase 8.
+> Status: **Phase 7 of 8** (phase 6, CSV/XLSX import, was skipped) — everything except final hardening is done: cards, categories & rules, transactions, dashboard, SMS/notification ingestion, Telegram bot, budgets, alerts, recurring payments, insights and scheduled summaries. Next: hardening, backups and the final README. This README is completed in phase 8.
 
 ## Stack
 
@@ -174,6 +174,54 @@ category or card, or delete it. After a category change the bot offers to create
 Commands: `/today` `/week` (since Saturday) `/month` (Jalali) `/budget` `/inbox` `/cards` `/last`
 `/undo` `/help`.
 
+## Budgets, alerts and insights
+
+### Budgets
+
+Set a monthly limit per expense category on **Budgets** (subcategories count toward their parent).
+A budget carries over every Jalali month until you change it; changing or removing it creates a
+new version from that month on, so past months keep their history (last 6 months shown).
+
+### Telegram alerts
+
+All alerts go to the allowed Telegram users and also appear on **Insights → Summaries & alerts**.
+Each kind can be switched off under **Settings → Notifications**.
+
+| Alert             | When                                                                                          |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| Budget            | A category passes its thresholds (default 80% and 100%) — once per threshold per month        |
+| Unusual expense   | ≥ 3× the typical amount for that merchant (5+ past charges) or category (8+), and ≥ 200,000 T |
+| Low balance       | A card's latest SMS balance is under the card's threshold (Cards page) — at most once a day   |
+| Recurring price   | A recurring charge costs ≥ 5% more than usual                                                 |
+| Recurring missing | A confirmed recurring charge is overdue (2 days weekly, 5 days monthly, 14 days yearly)       |
+| Weekly summary    | Fridays 09:00 — the previous 7 days                                                           |
+| Monthly summary   | 1st of each Jalali month, 09:00 — the month that ended                                        |
+
+Alerts created during **quiet hours (23:00–08:00 Tehran)** are delivered at 08:00. Every alert has a
+unique key, so restarts and retries never send it twice.
+Set `NOTIFY_DRY_RUN=true` to log notifications instead of sending them (handy while developing).
+
+### Recurring payments
+
+Every morning (07:30) the app looks for same-merchant expenses at similar amounts (±20%) and
+regular intervals (weekly, monthly, yearly; 3+ charges, 2 for yearly). **Recurring** lists them
+with typical amount, next expected date, yearly cost and price changes; confirm the real ones
+(only confirmed series get "missing charge" alerts) and dismiss the rest. **Scan now** runs it on demand.
+
+### Insights & export
+
+**Insights** shows month-over-month changes per category, top merchants, unusual and largest
+expenses, income by source, the Jalali year month by month, and the alert feed.
+**Export CSV** (Insights, or Transactions with the current filters) downloads UTF-8 CSV that opens
+correctly in Excel. **Settings → Download backup** exports everything as JSON.
+
+### Scheduler
+
+Jobs run inside the app container (node-cron, Asia/Tehran): delivery of queued notifications every
+2 minutes, recurring detection daily, weekly and monthly summaries. Each run is claimed in the
+`job_runs` table (or under a Postgres advisory lock), so overlaps and restarts are safe; on startup
+the app catches up on anything missed while it was down.
+
 ## Project layout
 
 ```
@@ -188,6 +236,9 @@ src/
   server/ingest/    ingestion pipeline + optional AI parser
   server/services/  transaction operations shared by web actions and the bot
   server/telegram/  grammY bot (handlers, views, polling/webhook runtime)
+  server/alerts/    budget / unusual-expense / low-balance checks after each transaction
+  server/jobs/      scheduler, recurring detection, weekly & monthly summaries
+  server/notify/    notification queue (quiet hours, dedupe, retries)
   proxy.ts          auth gate + CSRF Origin check
   instrumentation.ts → server/boot.ts (migrations, seed, later: scheduler & bot)
 drizzle/            SQL migrations

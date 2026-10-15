@@ -149,11 +149,13 @@ export async function budgetProgress(key: string, leaf: Map<number | null, numbe
     .selectDistinctOn([budgets.categoryId], { budget: budgets, category: categories })
     .from(budgets)
     .innerJoin(categories, eq(categories.id, budgets.categoryId))
-    .where(and(eq(budgets.active, true), sql`${budgets.startsMonth} <= ${key}`))
+    .where(sql`${budgets.startsMonth} <= ${key}`)
     .orderBy(budgets.categoryId, desc(budgets.startsMonth));
-  if (rows.length === 0) return [];
+  // The latest version per category wins; an inactive latest version means "no budget from that month on".
+  const effective = rows.filter((r) => r.budget.active);
+  if (effective.length === 0) return [];
   const children = await db().select({ id: categories.id, parentId: categories.parentId }).from(categories);
-  return rows
+  return effective
     .map(({ budget, category }) => {
       const ids = [category.id, ...children.filter((c) => c.parentId === category.id).map((c) => c.id)];
       const spentRial = ids.reduce((s, id) => s + (leaf.get(id) ?? 0), 0);

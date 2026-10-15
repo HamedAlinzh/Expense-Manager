@@ -23,7 +23,7 @@ async function expandCategoryIds(ids: number[]): Promise<number[]> {
   return [...new Set([...real, ...children.map((c) => c.id)])];
 }
 
-async function buildWhere(f: TxFilters): Promise<SQL | undefined> {
+export async function buildWhere(f: TxFilters): Promise<SQL | undefined> {
   const conds: (SQL | undefined)[] = [];
 
   if (f.q) {

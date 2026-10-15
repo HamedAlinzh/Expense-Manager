@@ -3,7 +3,6 @@ import {
   ArrowLeftRight,
   ChartPie,
   CreditCard,
-  FileUp,
   Inbox,
   LayoutDashboard,
   type LucideIcon,
@@ -38,10 +37,7 @@ export const navGroups: NavGroup[] = [
   },
   {
     label: "nav.group.system",
-    items: [
-      { href: "/import", label: "nav.import", icon: FileUp },
-      { href: "/settings", label: "nav.settings", icon: Settings },
-    ],
+    items: [{ href: "/settings", label: "nav.settings", icon: Settings }],
   },
 ];
 

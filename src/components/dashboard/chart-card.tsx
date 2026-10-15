@@ -77,9 +77,17 @@ export function TooltipRow({ color, label, value }: { color?: string; label: str
   );
 }
 
-export function DataTable({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
+export function DataTable({
+  head,
+  rows,
+  maxHeight = "18rem",
+}: {
+  head: string[];
+  rows: ReactNode[][];
+  maxHeight?: string;
+}) {
   return (
-    <div className="max-h-72 overflow-auto rounded-lg border border-border">
+    <div className="overflow-auto rounded-lg border border-border" style={{ maxHeight }}>
       <table className="w-full text-sm">
         <thead className="sticky top-0 bg-card">
           <tr className="border-b border-border text-xs text-muted-foreground">

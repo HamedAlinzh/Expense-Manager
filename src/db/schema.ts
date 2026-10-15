@@ -259,11 +259,16 @@ export const recurringSeries = pgTable(
   "recurring_series",
   {
     id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    /** Normalized merchant/description that groups the charges (stable across card changes). */
+    key: text("key").notNull(),
+    /** Display name (latest merchant or description as written). */
     merchant: text("merchant").notNull(),
     cardId: integer("card_id").references(() => cards.id, { onDelete: "set null" }),
     categoryId: integer("category_id").references(() => categories.id, { onDelete: "set null" }),
+    /** Median of the earlier charges; compared with the latest to spot price changes. */
     typicalAmountRial: rial("typical_amount_rial").notNull(),
     lastAmountRial: rial("last_amount_rial").notNull(),
+    lastTransactionId: integer("last_transaction_id").references(() => transactions.id, { onDelete: "set null" }),
     interval: recurringIntervalEnum("interval").notNull(),
     lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull(),
     nextExpectedAt: timestamp("next_expected_at", { withTimezone: true }).notNull(),
@@ -272,11 +277,17 @@ export const recurringSeries = pgTable(
     active: boolean("active").notNull().default(true),
     ...timestamps,
   },
-  (t) => [uniqueIndex("recurring_series_merchant_card_uq").on(t.merchant, t.cardId)],
+  (t) => [uniqueIndex("recurring_series_key_uq").on(t.key)],
 );
 
 // ─── Notifications & jobs ────────────────────────────────────────────────────
 
+export const notificationStatusEnum = pgEnum("notification_status", ["queued", "sent", "failed", "skipped"]);
+
+/**
+ * Every alert and summary. Doubles as the delivery queue (quiet hours, retries) and as the
+ * in-app feed; `dedupe_key` guarantees an alert is never created twice.
+ */
 export const notificationsLog = pgTable(
   "notifications_log",
   {
@@ -284,10 +295,21 @@ export const notificationsLog = pgTable(
     type: text("type").notNull(),
     /** Unique per alert instance, e.g. "budget:12:1405-07:80". Prevents duplicate sends. */
     dedupeKey: text("dedupe_key").notNull(),
+    /** { html, text, ... } — Telegram HTML plus a plain-text version for the app. */
     payload: jsonb("payload"),
-    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+    status: notificationStatusEnum("status").notNull().default("queued"),
+    /** Not delivered before this time (quiet hours). */
+    scheduledFor: timestamp("scheduled_for", { withTimezone: true }).notNull().defaultNow(),
+    attempts: integer("attempts").notNull().default(0),
+    error: text("error"),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("notifications_log_dedupe_key_uq").on(t.dedupeKey)],
+  (t) => [
+    uniqueIndex("notifications_log_dedupe_key_uq").on(t.dedupeKey),
+    index("notifications_log_queue_idx").on(t.status, t.scheduledFor),
+    index("notifications_log_type_created_idx").on(t.type, t.createdAt),
+  ],
 );
 
 export const jobRuns = pgTable(
@@ -364,3 +386,4 @@ export type CategoryRule = typeof categoryRules.$inferSelect;
 export type Budget = typeof budgets.$inferSelect;
 export type RecurringSeries = typeof recurringSeries.$inferSelect;
 export type Settings = typeof settings.$inferSelect;
+export type Notification = typeof notificationsLog.$inferSelect;

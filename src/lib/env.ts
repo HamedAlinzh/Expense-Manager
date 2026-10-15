@@ -56,6 +56,9 @@ const envSchema = z.object({
     .optional()
     .transform((v) => v !== "false" && v !== "0"),
 
+  /** Log notifications instead of sending them to Telegram (development). */
+  NOTIFY_DRY_RUN: boolish,
+
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 });
 

@@ -13,6 +13,7 @@ import {
   type UpdateTransactionInput,
   updateTransactionSchema,
 } from "@/lib/schemas/transaction";
+import { afterTransactionWrite } from "@/server/alerts/hooks";
 import { UserError } from "@/server/errors";
 import { loadRuleSet } from "@/server/queries/categories";
 import type { z } from "zod";
@@ -115,6 +116,7 @@ export async function createTransactionCore(input: CreateInput, source: "manual"
       dedupeHash: txFingerprint(input.cardId, direction, input.amountRial, occurredAt),
     })
     .returning({ id: transactions.id });
+  afterTransactionWrite(row!.id);
   return { id: row!.id, categoryId, autoCategorized };
 }
 
@@ -184,6 +186,15 @@ export async function updateTransactionCore({ id, patch }: UpdateInput) {
     // Splits no longer add up after an amount change; drop them rather than keep inconsistent data.
     if (amountChanged) await tx.delete(transactionSplits).where(eq(transactionSplits.transactionId, id));
   });
+
+  if (
+    set.categoryId !== undefined ||
+    set.amountRial !== undefined ||
+    set.type !== undefined ||
+    set.cardId !== undefined
+  ) {
+    afterTransactionWrite(id);
+  }
 
   const categoryChanged =
     patch.categoryId !== undefined && patch.categoryId !== null && patch.categoryId !== current.categoryId;

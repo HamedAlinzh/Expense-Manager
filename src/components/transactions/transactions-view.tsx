@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftRight, ChevronLeft, ChevronRight, ListChecks, SearchX } from "lucide-react";
+import { ArrowLeftRight, ChevronLeft, ChevronRight, Download, ListChecks, SearchX } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { cn } from "cn";
@@ -96,6 +96,15 @@ export function TransactionsView({ filters, rows, totals, page, pageCount, pageS
               onClick={() => (selectionMode ? clearSelection() : setSelectionMode(true))}
             >
               <ListChecks /> {selectionMode ? "Done" : "Select"}
+            </Button>
+            <Button variant="outline" asChild>
+              <a
+                href={`/api/export/transactions?${filtersToParams({ ...filters, page: 1 })}`}
+                download
+                aria-label="Export CSV"
+              >
+                <Download /> <span className="hidden sm:inline">CSV</span>
+              </a>
             </Button>
             <QuickAddButton />
           </>

@@ -22,6 +22,13 @@
       "when": 1792074834642,
       "tag": "0002_tx_direction_search",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792087097773,
+      "tag": "0003_alerts_recurring",
+      "breakpoints": true
     }
   ]
 }

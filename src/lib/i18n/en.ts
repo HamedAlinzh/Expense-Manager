@@ -12,7 +12,6 @@ export const en = {
   "nav.budgets": "Budgets",
   "nav.recurring": "Recurring",
   "nav.insights": "Insights",
-  "nav.import": "Import",
   "nav.settings": "Settings",
   "nav.more": "More",
   "nav.logout": "Log out",
@@ -37,7 +36,6 @@ export const en = {
   "page.budgets.subtitle": "Monthly limits per category",
   "page.recurring.subtitle": "Subscriptions and repeating payments",
   "page.insights.subtitle": "Trends, top merchants and reports",
-  "page.import.subtitle": "Bring in CSV or Excel bank statements",
   "page.settings.subtitle": "Display, bot and data preferences",
 
   "empty.comingSoon": "Coming in phase {phase}",
