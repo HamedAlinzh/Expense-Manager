@@ -2,7 +2,7 @@
 
 A self-hosted, single-user expense manager for Iranian bank cards (Sepah, Mellat, Tejarat, Blu). Transactions arrive from forwarded bank SMS and app notifications, and from a Telegram bot.
 
-> Status: **Phase 2 of 8** — foundation, cards, categories & rules, transactions and settings are done. Next: dashboard, SMS ingestion, Telegram bot, import, alerts and hardening. This README is completed in phase 8.
+> Status: **Phase 3 of 8** — foundation, cards, categories & rules, transactions, settings and the dashboard are done. Next: SMS ingestion, Telegram bot, import, alerts and hardening. This README is completed in phase 8.
 
 ## Stack
 
@@ -26,15 +26,16 @@ npm run dev          # http://localhost:3000
 
 On startup the server applies pending migrations and, if the database is empty, seeds default categories, starter categorization rules and your four cards. You can turn this off with `MIGRATE_ON_START` and `SEED_ON_EMPTY`.
 
-| Script                                   | Purpose                                             |
-| ---------------------------------------- | --------------------------------------------------- |
-| `npm run dev`                            | Dev server                                          |
-| `npm test`                               | Unit tests (Vitest)                                 |
-| `npm run typecheck` / `npm run lint`     | Static checks                                       |
-| `npm run db:generate`                    | Create a migration after editing `src/db/schema.ts` |
-| `npm run db:migrate` / `npm run db:seed` | Apply migrations / seed manually                    |
-| `npm run db:studio`                      | Browse the database                                 |
-| `npm run hash-password`                  | Generate `ADMIN_PASSWORD_HASH`                      |
+| Script                                   | Purpose                                              |
+| ---------------------------------------- | ---------------------------------------------------- |
+| `npm run dev`                            | Dev server                                           |
+| `npm test`                               | Unit tests (Vitest)                                  |
+| `npm run typecheck` / `npm run lint`     | Static checks                                        |
+| `npm run db:generate`                    | Create a migration after editing `src/db/schema.ts`  |
+| `npm run db:migrate` / `npm run db:seed` | Apply migrations / seed manually                     |
+| `npm run db:studio`                      | Browse the database                                  |
+| `npm run hash-password`                  | Generate `ADMIN_PASSWORD_HASH`                       |
+| `npm run db:demo` (`-- --remove`)        | Add (or remove) ~4 months of `#demo` data — dev only |
 
 ## Production (quick version)
 
