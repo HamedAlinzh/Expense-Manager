@@ -69,16 +69,19 @@ export const mellat: BankProfile = {
 };
 
 /**
- * Blu (Saman digital bank) — no real samples yet; uses the common keywords until
- * fixtures/sms/blu has real messages. Adjust markers/keywords here once they arrive.
+ * Blu (Saman digital bank) — SMS:
+ * "بلو\nبرداشت پول\n<name> عزیز، 5,000,000ریال از حساب شما پرید.\nموجودی: 5,569,084 ریال\n۲۱:۴۰\n۱۴۰۵.۰۹.۰۲"
+ * The amount sits on the line after the keyword, the time comes before a dot-separated date.
+ * "پرید" (left) / "نشست" (arrived) back up the header keyword.
  */
 export const blu: BankProfile = {
   id: "blu",
   bank: "blu",
-  bodyMarkers: [/بلو\s*بانک|بلوبانک|بانک\s*بلو/, /blu\s*bank|blubank/i],
+  bodyMarkers: [/^بلو$/m, /بلو\s*بانک|بلوبانک|بانک\s*بلو/, /blu\s*bank|blubank/i],
   senderHints: [/blu/i, /samanpr|saman/i],
-  keywords: COMMON_KEYWORDS,
-  headerLines: [/^(?:بلو\s*بانک|بلوبانک|blu\s*bank)$/i],
+  keywords: [...COMMON_KEYWORDS, { text: "پرید", type: "expense" }, { text: "نشست", type: "income" }],
+  headerLines: [/^(?:بلو|بلو\s*بانک|بلوبانک|blu\s*bank)$/i],
+  amountPattern: /(\d{1,3}(?:[,٬،]\d{3})+|\d+)\s*(ریال|تومان)?\s*(?:از|به)\s*حساب\s*شما/,
 };
 
 export const PROFILES: BankProfile[] = [tejarat, sepah, mellat, blu];

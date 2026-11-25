@@ -44,4 +44,9 @@ export type BankProfile = {
   keywords: TypeKeyword[];
   /** Header lines to drop from the description. */
   headerLines: RegExp[];
+  /**
+   * Amount for layouts where it isn't next to the keyword (group 1 = amount, group 2 = optional unit),
+   * e.g. Blu: "برداشت پول\n…، 5,000,000ریال از حساب شما پرید." Tried like "مبلغ: …".
+   */
+  amountPattern?: RegExp;
 };

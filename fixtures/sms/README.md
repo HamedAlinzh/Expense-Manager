@@ -54,8 +54,8 @@ separators, `ي`/`ی`, asterisks around the bank name, masks like `6037****1234`
 - account and card digits (keep the same number of digits and the same masking),
 - amounts and balances if you want (keep the separators).
 
-Files named `PLACEHOLDER-*` are invented examples; replace them with real messages when you
-have them (Blu in particular).
+Every fixture is a real message format (Blu's SMS sender ID is not known yet, so its fixtures use
+`blu`).
 
 ## Tuning a parser
 

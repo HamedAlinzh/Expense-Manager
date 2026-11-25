@@ -38,6 +38,17 @@ describe("readPayload", () => {
     );
     expect(ingestBodySchema.parse(p).body).toBe("بانک تجارت\nبرداشت: 10,000");
   });
+  it("reads the MacroDroid template even when the message contains quotes and backslashes", () => {
+    const p = readPayload(
+      "application/json",
+      '{"sender":"Bank Mellat","body":"خرید از "فروشگاه" \\ 1405/07/24\nمبلغ: 50,000","source":"sms"}',
+    );
+    expect(ingestBodySchema.parse(p)).toMatchObject({
+      sender: "Bank Mellat",
+      body: 'خرید از "فروشگاه" \\ 1405/07/24\nمبلغ: 50,000',
+      source: "sms",
+    });
+  });
   it("returns null for unreadable input", () => {
     expect(readPayload("application/json", "{oops")).toBeNull();
   });

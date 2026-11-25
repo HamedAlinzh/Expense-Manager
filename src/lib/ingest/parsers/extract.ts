@@ -52,8 +52,10 @@ function keywordAmounts(text: string, keywords: TypeKeyword[]): AmountHit[] {
 function structured(
   text: string,
   keywords: TypeKeyword[],
+  amountPattern?: RegExp,
 ): { typeText: string; keyword: TypeKeyword | null; amountRial: number } | null {
-  const amount = new RegExp(`مبلغ(?:\\s*تراکنش)?\\s*[:：]?\\s*${AMOUNT}${UNIT}`).exec(text);
+  const amount =
+    new RegExp(`مبلغ(?:\\s*تراکنش)?\\s*[:：]?\\s*${AMOUNT}${UNIT}`).exec(text) ?? amountPattern?.exec(text) ?? null;
   if (!amount) return null;
   const amountRial = toRial(amount[1]!, amount[2]);
   if (amountRial === null) return null;
@@ -62,7 +64,10 @@ function structured(
   const has = (k: TypeKeyword, t: string) =>
     new RegExp(`(?<!\\p{L})${escapeRe(normalizeSmsBody(k.text))}`, "u").test(t);
   const keyword = keywords.find((k) => has(k, typeText)) ?? keywords.find((k) => has(k, text)) ?? null;
-  return { typeText, keyword, amountRial };
+  // No "نوع تراکنش:" line: a short line holding the keyword is the label ("برداشت پول").
+  const keywordLine =
+    !typeText && keyword ? text.split("\n").find((l) => l.length <= 30 && !/\d/.test(l) && has(keyword, l)) : undefined;
+  return { typeText: typeText || keywordLine?.trim() || "", keyword, amountRial };
 }
 
 // ─── Balance, identifiers, channel ──────────────────────────────────────────
@@ -106,10 +111,11 @@ function merchant(text: string): string | null {
 type DateHit = { jy: number | null; jm: number; jd: number; gregorian?: boolean; index: number };
 
 function findDate(text: string): DateHit | null {
-  const full = /(?<![\d/])(\d{4})\/(\d{1,2})\/(\d{1,2})(?![\d/])/.exec(text);
+  // "1405/09/02", or Blu's "1405.09.02"
+  const full = /(?<![\d/.])(\d{4})([/.])(\d{1,2})\2(\d{1,2})(?![\d/.])/.exec(text);
   if (full) {
     const y = Number(full[1]);
-    return { jy: y, jm: Number(full[2]), jd: Number(full[3]), gregorian: y > 1900, index: full.index };
+    return { jy: y, jm: Number(full[3]), jd: Number(full[4]), gregorian: y > 1900, index: full.index };
   }
   const short = /(?<![\d/])(\d{2})\/(\d{1,2})\/(\d{1,2})(?![\d/])/.exec(text);
   if (short) return { jy: Number(short[1]) + 10_000, jm: Number(short[2]), jd: Number(short[3]), index: short.index }; // +10000 marks a 2-digit year
@@ -156,7 +162,7 @@ function resolveDate(
 // ─── Description ────────────────────────────────────────────────────────────
 
 const KNOWN_LINE =
-  /(مانده|موجودی|حساب|سپرده|کارت|مبلغ|نوع\s*(?:تراکنش|عملیات)|از\s*طریق|تاریخ|ساعت|کد\s*شعبه|کدشعبه|^[\d/:\s-]+$)/;
+  /(مانده|موجودی|حساب|سپرده|کارت|مبلغ|نوع\s*(?:تراکنش|عملیات)|از\s*طریق|تاریخ|ساعت|کد\s*شعبه|کدشعبه|^[\d/.:\s-]+$)/;
 
 function extraInfo(text: string, profile: BankProfile | null): string[] {
   return text
@@ -203,7 +209,7 @@ export function extractTransaction(
   let label = "";
   let ambiguous = false;
   const hits = keywordAmounts(text, keywords);
-  const st = hits.length === 0 ? structured(text, keywords) : null;
+  const st = hits.length === 0 ? structured(text, keywords, profile?.amountPattern) : null;
   if (hits.length > 0) {
     const first = hits[0]!;
     type = first.keyword.type;

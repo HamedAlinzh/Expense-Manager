@@ -1,0 +1,17 @@
+# Real format, anonymized (name replaced). Sender ID not known yet.
+# sender: blu
+# received_at: 2026-11-23T23:05:10+03:30
+# expect.bank: blu
+# expect.type: income
+# expect.amount_rial: 3000000
+# expect.occurred_at: 1405/09/02 23:05
+# expect.balance_after_rial: 8569084
+# expect.description: واریز پول
+# expect.min_confidence: 0.9
+---
+بلو
+واریز پول
+علی عزیز، 3,000,000ریال به حساب شما نشست.
+موجودی: 8,569,084 ریال
+۲۳:۰۵
+۱۴۰۵.۰۹.۰۲

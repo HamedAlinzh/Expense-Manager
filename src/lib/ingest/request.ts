@@ -35,8 +35,17 @@ export const ingestBodySchema = z.object({
 });
 
 /**
+ * The documented MacroDroid template `{"sender":"…","body":"…","source":"…"}`, matched literally so a message
+ * containing `"` or `\` (which MacroDroid inserts unescaped) still reads: everything between the body's quotes
+ * is the body.
+ */
+const TEMPLATE_RE =
+  /^\s*\{\s*"sender"\s*:\s*"([^"\n]*)"\s*,\s*"body"\s*:\s*"([\s\S]*)"\s*,\s*"source"\s*:\s*"(sms|notification)"\s*\}\s*$/;
+
+/**
  * Reads JSON or form-encoded payloads. MacroDroid inserts raw SMS text into JSON templates without
- * escaping newlines, so an unparseable single-line template gets its newlines escaped and is retried.
+ * escaping, so an unparseable template gets its newlines escaped and is retried, then falls back to
+ * the literal template match.
  */
 export function readPayload(contentType: string, text: string): unknown {
   if (contentType.includes("application/x-www-form-urlencoded")) {
@@ -48,7 +57,8 @@ export function readPayload(contentType: string, text: string): unknown {
     try {
       return JSON.parse(text.replace(/\r\n|\r|\n/g, "\\n").replace(/\t/g, "\\t"));
     } catch {
-      return null;
+      const m = TEMPLATE_RE.exec(text);
+      return m ? { sender: m[1], body: m[2], source: m[3] } : null;
     }
   }
 }

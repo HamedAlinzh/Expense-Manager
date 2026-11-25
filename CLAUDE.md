@@ -128,8 +128,17 @@ text or amounts above `debug` level.
 8. **Hardening** — CSP with per-request nonce, security review, nightly `pg_dump` backups to a named volume (newest
    14), JSON restore in Settings, tested `pg_restore` procedure, full README.
 
-Not yet done: VPS deployment (Telegram switches from `polling` to `webhook` there — local `.env` must then use
-`TELEGRAM_MODE=off`), and real Blu SMS samples (Blu uses the generic parser until one arrives).
+**Deployed** (2026-10-16) at `https://expenses.trainwithparia.com` on a shared VPS (`ssh my-vps`, repo in
+`~/expense-manager`). DNS is on Cloudflare with the proxy on (orange cloud) — needed because the VPS IP / free DDNS
+names aren't reachable from Iran without a VPN. The host's nginx + certbot already serve other sites on 80/443, so
+Caddy is disabled by an untracked `docker-compose.override.yml` (publishes the app on `127.0.0.1:3010`, `caddy` gets
+`profiles: ["disabled"]`). nginx site `/etc/nginx/sites-available/ExpenseManager` includes
+`snippets/cloudflare-real-ip.conf` (real visitor IP from `CF-Connecting-IP`), overwrites `X-Forwarded-For` with
+`$remote_addr`, and adds HSTS. Telegram runs in **`polling`** on the server (no webhook needed), so the local `.env`
+must keep `TELEGRAM_MODE=off`. Update: `cd ~/expense-manager && git pull && sudo docker compose up -d --build`.
+
+Blu SMS format is supported (`fixtures/sms/blu/`: amount on the line after the keyword, `۱۴۰۵.۰۹.۰۲` dates via
+`amountPattern`); its real sender ID is still unknown — the first Blu SMS lands in Inbox → Ignored → "Add sender to card".
 
 ## Gotchas
 
@@ -141,5 +150,5 @@ Not yet done: VPS deployment (Telegram switches from `polling` to `webhook` ther
   inside table rows don't trigger them.
 - Chart series colors are fixed, CVD-validated tokens in `src/components/dashboard/chart-theme.ts` (income aqua,
   expense orange); text keeps neutral text colors.
-- Seeded card sender IDs: Mellat `Bank Mellat`, Tejarat `TejaratBank`, Sepah `986715000`; Blu is a placeholder until a
+- Seeded card sender IDs: Mellat `Bank Mellat`, Tejarat `TejaratBank`, Sepah `986715000`; Blu's sender is a placeholder until a
   real message arrives (Inbox → Ignored → "Add sender to card").

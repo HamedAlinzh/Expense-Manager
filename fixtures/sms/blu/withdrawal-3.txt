@@ -1,0 +1,17 @@
+# Real format, anonymized (name replaced). Sender ID not known yet.
+# sender: blu
+# received_at: 2026-11-17T13:09:10+03:30
+# expect.bank: blu
+# expect.type: expense
+# expect.amount_rial: 120000
+# expect.occurred_at: 1405/08/26 13:09
+# expect.balance_after_rial: 21152884
+# expect.description: برداشت پول
+# expect.min_confidence: 0.9
+---
+بلو
+برداشت پول
+علی عزیز، 120,000ریال از حساب شما پرید.
+موجودی: 21,152,884 ریال
+۱۳:۰۹
+۱۴۰۵.۰۸.۲۶
